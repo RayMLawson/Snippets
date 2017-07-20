@@ -1,0 +1,157 @@
+'Microsoft Access function (VBA)
+
+' I set up this function while creating a Texas hold-em game that would let me gather statistics and see if
+' my numbers would come up anything like you read.     I wanted to create a function that would shuffle
+' a deck of cards in the same way you would at any get together.   Cut the deck, Shuffle a few times and 
+'deal.
+
+Function ShuffleDeck()
+
+Dim strSQL As String
+Dim RV As Integer
+Dim ShV As Integer
+
+Dim DECK(1 To 52) As Integer
+Dim LeftCut(1 To 52) As Integer
+Dim RightCut(1 To 52) As Integer
+
+' -------------------------------------------
+' If you’re playing cards you don’t resort them after every deal.   
+'Mimic that by taking the previous shuffle as our start. 
+Dim rstTableName As DAO.Recordset   
+Set rstTableName = CurrentDb.OpenRecordset("Shuffle")
+
+If Not rstTableName.EOF Then
+    rstTableName.MoveFirst   'Ensure we begin on the first row
+    CI = 1
+    'The size of the array should be equal to the number of rows in the table
+        Do Until rstTableName.EOF
+         If CI < 53 Then
+           DECK(CI) = rstTableName.Fields("C_ID")
+         End If
+          CI = CI + 1
+          rstTableName.MoveNext
+    Loop
+End If
+
+If IsObject(rstTableName) Then Set rstTableName = Nothing
+
+' ----------------------------------------------
+' Cut the deck somewhere in the middle but not right down the middle.  
+' Don’t count cutting right down the middle out.  Sometimes people cut that precise
+    RV = 24 + CInt(Int((5 * Rnd()) + 1))
+
+  ' Clear the left and right array  ( Probably not necessary) and flip them in the deck.  
+    For CI = 1 To 52
+        LeftCut(CI) = 0
+        RightCut(CI) = 0
+    Next CI
+    
+    For CI = 1 To RV
+        LeftCut(CI) = DECK(CI)
+    Next CI
+    
+    For CI = RV + 1 To 52
+        RightCut(CI - RV) = DECK(CI)
+    Next CI
+
+    For CI = 1 To 52
+        DECK(CI) = 0
+    Next CI
+    
+    For CI = RV + 1 To 52
+        DECK(CI - RV) = RightCut(CI - RV)
+    Next CI
+    
+    For CI = 1 To RV
+        DECK(CI + (52 - RV)) = LeftCut(CI)
+    Next CI
+    
+
+' ----------------------------------------------
+' Now shuffle 3 – 5 times (ShV)
+ShV = 2 + CInt(Int((3 * Rnd()) + 1))
+
+For SHi = 1 To ShV
+    'Cut the deck (Clear the deck array)
+    RV = 24 + CInt(Int((5 * Rnd()) + 1))
+
+    
+    For CI = 1 To 52
+        LeftCut(CI) = 0
+        RightCut(CI) = 0
+    Next CI
+    
+    For CI = 1 To RV
+        LeftCut(CI) = DECK(CI)
+    Next CI
+    
+    For CI = RV + 1 To 52
+        RightCut(CI - RV) = DECK(CI)
+    Next CI
+
+    For CI = 1 To 52
+        DECK(CI) = 0
+    Next CI
+
+    ' Shuffle back into the deck array.  Picture your thumbs releasing cards from the left and right stack.
+    ' I you shuffle like me you tend to let 1, 2 or 3 cards go at a time.   In other words it never really goes
+    ' left 1 right 1 left 1 right 1 etc.
+    CI = 1
+    LI = 1
+    RI = 1
+    While CI < 53
+    
+    RV = CInt(Int((3 * Rnd()) + 1))
+    For SI = 1 To RV
+    
+    If LeftCut(LI) > 0 Then
+      DECK(CI) = LeftCut(LI)
+      CI = CI + 1
+    End If
+    LI = LI + 1
+        
+    Next SI
+    
+    
+    RV = CInt(Int((3 * Rnd()) + 1))
+    For SI = 1 To RV
+    
+    If RightCut(RI) > 0 Then
+      DECK(CI) = RightCut(RI)
+      CI = CI + 1
+    End If
+    RI = RI + 1
+
+    Next SI
+
+    ' One might say this loop could be cleaner if it checked for the last card in each array
+    ' before randomizing.  One might be right but I don’t think the logic would speed it up at all.
+    Wend
+    
+Next SHi
+
+' Now that we have shuffled we need to put it back in the deck table called shuffle to use.
+strSQL = "DELETE * FROM Shuffle"
+CurrentDb.Execute strSQL
+
+'This function has some analysis logic in it.  I’m holding on to the sequence of cards after the shuffle
+'and putting it away in a different table.  I can then look for a distinct count to see if my shuffle ever
+‘repeats the same sequence.
+ShflSq = ""
+
+For SHi = 1 To 52
+
+    strSQL = "INSERT INTO Shuffle (C_ORDER, C_ID)VALUES ("
+    strSQL = strSQL + Str(SHi) + "," + Str(DECK(SHi)) + ")"
+    CurrentDb.Execute strSQL
+    
+    ShflSq = ShflSq + Chr(DECK(SHi) + 40)
+
+Next SHi
+
+   strSQL = "INSERT INTO ShflSequence (SHFFL) VALUES ('" + ShflSq
+   strSQL = strSQL + "')"
+   CurrentDb.Execute strSQL
+
+End Function
