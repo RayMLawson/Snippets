@@ -1,4 +1,5 @@
-'Microsoft Access function (VBA)
+'Microsoft Access function (VBA).
+'This snippet doesn't include the database.
 
 ' I set up this function while creating a Texas hold-em game that would let me gather statistics and see if
 ' my numbers would come up anything like you read.     I wanted to create a function that would shuffle
@@ -16,7 +17,7 @@ Dim LeftCut(1 To 52) As Integer
 Dim RightCut(1 To 52) As Integer
 
 ' -------------------------------------------
-' If you’re playing cards you don’t resort them after every deal.   
+' If youâ€™re playing cards you donâ€™t resort them after every deal.   
 'Mimic that by taking the previous shuffle as our start. 
 Dim rstTableName As DAO.Recordset   
 Set rstTableName = CurrentDb.OpenRecordset("Shuffle")
@@ -38,7 +39,7 @@ If IsObject(rstTableName) Then Set rstTableName = Nothing
 
 ' ----------------------------------------------
 ' Cut the deck somewhere in the middle but not right down the middle.  
-' Don’t count cutting right down the middle out.  Sometimes people cut that precise
+' Donâ€™t count cutting right down the middle out.  Sometimes people cut that precise
     RV = 24 + CInt(Int((5 * Rnd()) + 1))
 
   ' Clear the left and right array  ( Probably not necessary) and flip them in the deck.  
@@ -69,7 +70,7 @@ If IsObject(rstTableName) Then Set rstTableName = Nothing
     
 
 ' ----------------------------------------------
-' Now shuffle 3 – 5 times (ShV)
+' Now shuffle 3 â€“ 5 times (ShV)
 ShV = 2 + CInt(Int((3 * Rnd()) + 1))
 
 For SHi = 1 To ShV
@@ -126,7 +127,7 @@ For SHi = 1 To ShV
     Next SI
 
     ' One might say this loop could be cleaner if it checked for the last card in each array
-    ' before randomizing.  One might be right but I don’t think the logic would speed it up at all.
+    ' before randomizing.  One might be right but I donâ€™t think the logic would speed it up at all.
     Wend
     
 Next SHi
@@ -135,9 +136,9 @@ Next SHi
 strSQL = "DELETE * FROM Shuffle"
 CurrentDb.Execute strSQL
 
-'This function has some analysis logic in it.  I’m holding on to the sequence of cards after the shuffle
+'This function has some analysis logic in it.  Iâ€™m holding on to the sequence of cards after the shuffle
 'and putting it away in a different table.  I can then look for a distinct count to see if my shuffle ever
-‘repeats the same sequence.
+â€˜repeats the same sequence.
 ShflSq = ""
 
 For SHi = 1 To 52
